@@ -1,0 +1,39 @@
+#CLUSTER on Engg_College_Data
+
+setwd("D:/Great Lakes/Data Mining/Data")
+getwd()
+rcdf1 <- read.csv("Engg_College_Data.csv")
+
+# To put every variable on scale use Scale matrix
+# Scaled Variable - Use [3:7] - Infeix operartor 
+scaled.rcdf1 <- scale(rcdf1[,3:7])
+head(scaled.rcdf1)
+
+# uSE Euclidiean  Method and calculate Distance 
+# Check less distance which is 8 and 9 and similar which .727
+# From Euclidiean metrix 
+#Clustring will start from 8 and 9 and move on.
+
+d.col <- dist(x=scaled.rcdf1, method ="euclidean") 
+d.col
+
+clus3 <- hclust(d.col,method="average")
+clus3
+
+plot(clus3,labels=as.character(rcdf[,2]))
+
+rect.hclust(clus3,k=3,border="red")
+
+rcdf$clusters1 <-cutree(clus3,k=3)
+# This will be tell  that which customer is tagged to which Clusters
+rcdf$clusters1
+
+# To find the what is characteristics of each Cluster
+# This Aggregation will tell the property of each variable in each cluster
+
+
+aggr1 <- aggregate(rcdf1[,-c(1,2)],list(rcdf$clusters1) , mean)
+aggr1
+
+
+
