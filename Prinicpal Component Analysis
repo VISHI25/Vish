@@ -1,0 +1,120 @@
+setwd("D:/Great Lakes/Class Stat/Data Excels")
+getwd()
+i<- read.csv("Investment decision_factor analysis.csv")
+
+# Remove 1 and 2nd Column
+d1 <- i[,-c(1,2)]
+
+
+#RELIABILITY ANALYSIS WITH ALHPHA 
+#Check Raw Alpha which is .42 and > .50 so it not reliable 
+alpha(d1)
+
+
+
+#Principal Component Analysis 
+#Check Overall MSA which is KMO .57 and > .5  
+#TO CHECK Correlationship
+KMO(i)
+
+#Bart Test
+# pVALUE < .05 ACCEPT H1
+# If it gives less than .5 then for Factor Analysis and it will provide minimum Factors.
+# Go for screenplot
+bart_spher(d1)
+
+# To get the number of factors use Scree  and focus on FA 
+scree(d1)
+
+#Principal Component
+# 7 Predictors because of 7 variable and it is factors
+#Eign Value is S.D such Comp 1 = 1,41 
+#%variance is Proportion of variance which is Eigen Value/N SUCH AS 1.41/7 = .29 for Comp1 
+#Inlcude first three componenets because %Variance is >= 1 for comp1 ,2 and 3
+pc<- princomp(d1,scores =TRUE, cor=TRUE)
+summary(pc)
+
+#Check which variables will be merger with which component or factor
+#Ignore -ve and +ve sign ,,, just focus on ABS value 
+#Focus on those factors which are selected in previous  princomp
+#Compare values in first three components
+
+#Factor 1
+#Returns 
+#Tax.Rebate 
+#Maturity.time    
+#Ease.of.accessibility      
+
+#Factor 2
+#Risk.Averseness 
+#Insurance.Cover
+#Credibility.of.the.financial.institute
+
+
+# based on above we find y = f(f1,f2 only three factors 
+
+loadings(pc)
+
+# F1 - Preceived value of service 
+#F2 - Security Issus 
+
+# tO caclulate scores for Regression Testing for three factors 
+pc$scores
+              
+#
+biplot(pc)
+
+
+fa1<-factanal(d1,factors = 2 ,rotation="varimax",scores="regression" , fa = pa)
+fa1
+
+# Calculate Scores 
+fa2<-fa1$scores
+fa2
+
+# Crate new data frame to have one dependent variable from original database which is gb 
+# Add independent variable extracted from previous rotation table i.e fa1
+df<-data.frame(i$Amount.Invested..in.lakhs.,fa2)
+df
+
+#Regressin Testing on Depdent and Indepent 
+#R square is .38 which is less
+# Model is not strong
+# If we continue with model
+# No of Repeat Purchase week  = 6.5744 - 1.8339 + 3.4198  +1.0209
+# Factor 1 - Negative perception ( Coming negative because one unit increased and goes negative)
+
+reg<- lm(df$i.Amount.Invested..in.lakhs.~.,data =df)
+reg
+
+
+i1<-i[,-c(1,2)]
+fa <- factanal(i1,factors=2,rotation ="varimax",scores ="regression")
+fa
+fa1<-fa$scores
+df<-data.frame(i$Amount.Invested..in.lakhs.,fa1)
+df
+reg<-lm(df$i.Amount.Invested..in.lakhs.~.,data =df)
+summary(reg)
+
+
+i2<-i[,-c(1,2,6)]
+fa <- factanal(i2,factors=2,rotation ="varimax",scores ="regression")
+fa
+fa1<-fa$scores
+df<-data.frame(i$Amount.Invested..in.lakhs.,fa1)
+df
+reg<-lm(df$i.Amount.Invested..in.lakhs.~.,data =df)
+summary(reg)
+
+
+i3<-i[,-c(1,2,6)]
+fa <- factanal(i3,factors=2,rotation ="varimax",scores ="regression")
+fa
+fa1<-fa$scores
+df<-data.frame(i$Amount.Invested..in.lakhs.,i$Tax.Rebate,fa1)
+df
+reg<-lm(df$i.Amount.Invested..in.lakhs.~.,data =df)
+summary(reg)
+
+
