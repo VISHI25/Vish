@@ -1,0 +1,82 @@
+
+#Created Vectors as data was not in excel 
+s <- c(100,	100,	110,	120,	130,	130,	130,	120,	120,	100)
+ac <- c(22,	26,	28,	32,	32,	30,	30,	28,	26,	26)
+
+#Data Franes 
+df <-data.frame(s,ac)
+df
+
+#Regression 
+reg1 <- lm(s~ac,data=df)
+summary(reg1)
+
+#Just check the Multiple R-squared: value before checking Beta and P value to check the value
+# Check beta value 
+
+#F-statistic: 12.98 on 1 and 8 DF,  p-value: 0.006954
+#------------------------------------------
+#OutPut : 
+#Residuals:
+#Min     1Q Median     3Q    Max 
+#-9.636 -8.046  2.182  6.727 10.364
+#------------------------------------------
+
+#Coefficients:
+#  Estimate Std. Error t value Pr(>|t|)   
+#(Intercept)  26.9091    24.8667   1.082  0.31073   
+#ac            3.1818     0.8832   3.603  0.00695 **
+
+#Beta is 3.1818
+#P vALUE IS  0.00695
+
+# R square = ESS/TSS 
+# R must be .5 which is atleast 
+
+
+#Residual standard error: 8.285 on 8 degrees of freedom
+#Multiple R-squared:  0.6187,	Adjusted R-squared:  0.571 
+
+anova(reg1)
+
+#Df Sum Sq Mean Sq F value   Pr(>F)   
+#ac         1 890.91  890.91   12.98 0.006954 **
+# Residuals  8 549.09   68.64                    
+
+#Here 890.91 is ESS and 549 is RSS 
+# TSS = ESS + RSS 
+# r square
+
+p <- c(3,4,3,5,4.5,3.5,5,	4,	5.5,	3)
+
+#Data Franes 
+df <-data.frame(s,ac,p)
+df
+
+#Regression 
+reg2 <- lm(s~ac+p,data=df)
+summary(reg2)
+anova(reg2)
+
+# Hypothese again on Model 1 and Model 2 
+
+anova(reg1,reg2)
+
+setwd("D:/Great Lakes/R Langugage/Data")
+getwd()
+gb <- read.xlsx("good-bad customer.xlsx")
+
+reg1 <- lm(gb$Duration~gb$Amount,data=gb)
+summary(reg1) 
+anova(reg1)
+
+
+reg2<-lm(gb$Duration~gb$Amount+gb$Check_Account_Status+gb$CreditHistory,data=gb)
+summary(reg2)
+
+dur = 14.58 + (.002 * 5000) - (1.17 * 1) - (.131 *1)
+dur
+
+
+anova(reg2)
+anova(reg1,reg2)
