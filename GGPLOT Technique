@@ -1,0 +1,137 @@
+setwd('D:/Great Lakes/Tableau')
+getwd()
+Sample1= read.csv("Stores_sales.csv",header =TRUE)
+dev.off("Stores_sales.csv")
+par(mfrow =c(2,1))
+
+
+hist(Sample1$Store_Sales,col="Orange")
+
+#To check the Ouliers
+boxplot(Sample1$Store_Sales,horizontal = TRUE,col ="light blue")
+
+summary(Sample1)
+
+#Filter the data less than 500000 and this condition is putting in  
+# row cloumn "Sample1$Store_Sales<500000"
+#As per below condition it will remove the Outlier in row 
+
+salesdata_low = Sample1[Sample1$Store_Sales<500000,]
+summary(salesdata_low)
+
+
+hist(salesdata_low$Store_Sales,col="Orange")
+
+#To check the Ouliers
+boxplot(salesdata_low$Store_Sales,horizontal = TRUE,col ="light blue")
+
+#After this you will see the data is visually  normal distrubuted
+#But we neeed to check SHAPRIO Test 
+# SHAPRIO test is used when Observation is less than 5000
+
+shapiro.test(salesdata_low$Store_Sales)
+
+#P value is less alhpas
+#W = 0.99567, p-value = 0.01016 < .05 ( Reject Null Hypothese and data is not normally distrubute)
+
+#Table shows the total number of values in category 
+table(salesdata_low$Parking)
+
+#Prop.Table will give the propotion  
+prop.table(table(salesdata_low$Parking))*100
+
+
+#Let us examine the Numeric Indepenmdent Variable
+#Filter out only numeric variabke and see the names of NUMERIC Variable
+
+df_numeric_vars <- Filter(is.numeric,salesdata_low)
+names(df_numeric_vars)
+
+#Pass the corr function to check the relationship but it will give you not relation because 
+#there will be missing values 
+cor(df_numeric_vars[,-1])
+
+#Use cOMPLETE.obs to ignore missing values such as N/A
+cor(df_numeric_vars[,-1], use ="complete.obs")
+
+
+#Let us examine the Categorical  Variable
+#Filter out only Categorical Variable and see the names of NUMERIC Variable
+
+df_categorical_vars <- Filter(is.factor,salesdata_low)
+names(df_categorical_vars)
+
+
+#Studying two categorical variable 
+crosstab <- table(df_categorical_vars$Parking, df_categorical_vars$Store_Category)
+crosstab
+#Add Margins will show the sum of rows and columns 
+addmargins(crosstab)
+
+
+dev.off()
+
+#Analyze two categorical varibales
+#xlab and yalb =setting x axis and y axis 
+# main = setting the chart name
+#legend = setting legend with row names from cross tab 
+# beside 
+barplot(crosstab,xlab='Category',ylab = 'Count',main= "Car Parking by Category",
+        beside =T,col=c("orange","turquoise","light green","light blue"),
+        legend =rownames(crosstab),args.legend = list(x ="topleft"))
+
+#SAPPLY takes one column at a time and pass it to function and give the count of N/A 
+# from each column
+
+nas = sapply(salesdata_low, function(x)  sum(is.na(x))) 
+nas
+
+#SAPPLY percentage wise 
+
+missing_percent = (nas*100)/(nrow(salesdata_low))
+missing_percent
+
+#Library Name is GGPLOT2
+g <- ggplot(salesdata_low,aes(x=salesdata_low$Store_Sales))
+g <- g + geom_histogram()
+g
+
+#Install DPLYR library for chaining purpose   
+#Note stat = identity in gemo bar() and it represents values in data
+# %>% chain functionality in R 
+#data.frame - create a data frame and chaining it to GGPLOT() func
+#Angle - 90 rotating text in the x-axis 
+#hjust - 0 fir left and .5 for center and 1 for right  
+
+data.frame(missing_percent,variable =colnames(salesdata_low))%>%
+  ggplot(aes(variable,missing_percent))+
+  geom_bar(stat="identity")+
+  labs(x ="Features", y = "Percent of Missing Values")+
+  theme(axis.text.x = element_text(angle =90, hjust =1))
+
+#User REORDER 
+# Use negative sign to show in descending manner with reorder() 
+
+
+data.frame(missing_percent,variable =colnames(salesdata_low))%>%
+  ggplot(aes(reorder(variable,-missing_percent),missing_percent))+
+  geom_bar(stat="identity")+
+  labs(x ="Features", y = "Percent of Missing Values")+
+  theme(axis.text.x = element_text(angle =90, hjust =1))
+
+#Install Amelia - to check missing values in R 
+missmap(salesdata_low,col=c('steelblue','grey'),y.cex = .5 ,x.cex = .5)
+
+
+#Install MICE - To predict missing variables by analyzing other variables
+mice.data <- mice(salesdata_low,maxit =50,printflag = F)
+salesdata <-mice::complete(mice.data)
+
+dev.off()
+
+#Install Amelia - to check missing values in R 
+missmap(salesdata,col=c('steelblue','grey'),y.cex = .5 ,x.cex = .5)
+
+#Write 
+write.csv(salesdata,"NewNomissing.csv")
+
