@@ -1,0 +1,146 @@
+#--------------------------------------------------------------------------------
+# Check good-bad customer file available in R Language Data Folder
+# Check ANOVA doc for business questions 
+#--------------------------------------------------------------------------------
+# Business Problem:
+# It has been found that the average engagement duration of customers of the said 
+# bank is not desirable for the organization. Before creating suitable business 
+# interventions, the bank wishes to check the pattern of 
+# "Duration" with some other parameters of the customer.
+#--------------------------------------------------------------------------------
+# Business Questions:
+#  Q1) Do the engagement duration of the customer depend upon Account Status of the customer?
+#  Q2) Do the engagement duration of the customer depend upon Account Status of the customer and their Credit History?
+#  Q3) Does the type of a customer depend upon Account Status of the customer and their Credit History?
+#--------------------------------------------------------------------------------
+
+setwd("D:/Great Lakes/R Langugage/Data")
+getwd()
+gb <- read.xlsx("good-bad customer.xlsx")
+
+#Create a Table for Obsereved cross tab
+t <- table(gb$CreditHistory,gb$Job)
+t
+t1 <- table(gb$Duration,gb$Check_Account_Status)
+t1
+
+#--------------------------------------------------------------------------------
+# Business Ques: 
+# Do engagement duration of the Customer depend upon Account Status   ? 
+#--------------------------------------------------------------------------------
+#It is One way to compare Duration and Check Account Status 
+# Duration is Continous variabe and Check_Account_Status is Categorical varable
+#AOV is command to check Anova
+# Here check account status is between the groups and it is EXPLAINED PART   
+# Residuals are within the group because it is unexplained part
+# wITHIN is always Residuals and called as ERRORS 
+# H0 : Mean 1 = Mean 2 = Mean 3 = Mean 4  
+# H1 : Mean 1 Not = Mean 2 Not = Mean 3 Not = Mean 4 
+#--------------------------------------------------------------------------------
+#Result from below command :
+#                          Df Sum Sq Mean Sq F value  Pr(>F)   
+# gb$Check_Account_Status   3   2047   682.3   4.738 0.00275 ** 
+# Residuals               996 143437   144.0                    
+#--------------------------------------------------------------------------------
+
+# Reject Null Hypothesis and Accept Alternate hypothese and there is relationship
+# In duration and Check Account Status 
+# Go for POST -ADHOC Test
+#--------------------------------------------------------------------------------
+
+anova1 <- aov(gb$Duration~gb$Check_Account_Status,data=gb)
+summary(anova1)
+
+#--------------------------------------------------------------------------------
+# As we have accepted Alternate hypothese where mean are not equal and relationship 
+# found so for two population check via TUKEYHSD 
+# Check P significan value and comparison with .05 Level of significance
+# Pick A13 - A12 and A14 - 12 as these are significant 
+# Leave others are as they are not significantky different as per Inferential point of
+# View so we need to focus on A13 A12 and A14 by Descriptive way 
+#            diff       lwr        upr     p adj
+# A12-A11  1.362779 -1.287874  4.0134319 0.5483962  ( Accept HO and no relationship)
+# A13-A11 -3.968312 -8.283242  0.3466179 0.0842659  ( Accept HO and no relationship)
+# A14-A11 -1.363204 -3.792437  1.0660295 0.4720829  ( Accept HO and no relationship)
+# A13-A12 -5.331091 -9.653511 -1.0086710 0.0084219  ( Reject HO and has relationship)
+# A14-A12 -2.725983 -5.168495 -0.2834699 0.0216397  ( Reject HO and has relationship)
+# A14-A13  2.605108 -1.585181  6.7953981 0.3791265  ( Accept HO and no relationship)   
+#--------------------------------------------------------------------------------
+
+TukeyHSD(anova1)
+
+#--------------------------------------------------------------------------------
+# Use Subset function to filter with Categories A12 , A13 and A14  
+# Gives Interpretation accordingly as per higher MEAN for A12 , A13 and A14 categories
+# In this example A12 is giving higher Duration 
+# Result of below commands 
+# mean(gb1$Duration)
+# 22.6803
+# mean(gb2$Duration)
+# 17.34921
+# mean(gb3$Duration)
+# 19.95431
+#--------------------------------------------------------------------------------
+
+
+gb1 <- subset(gb,gb$Check_Account_Status =="A12")
+mean(gb1$Duration)
+gb2 <- subset(gb,gb$Check_Account_Status =="A13")
+mean(gb2$Duration)
+gb3 <- subset(gb,gb$Check_Account_Status =="A14")
+mean(gb3$Duration)
+
+
+#--------------------------------------------------------------------------------
+# Business Ques2 : 
+# Do the engagement duration of the customer depend upon Account 
+# Status of the customer and their Credit History? ? 
+#--------------------------------------------------------------------------------
+
+# Two Way Anova ,, Interaction with Repetition Case 
+anova <- aov(gb$Duration~gb$Check_Account_Status*gb$CreditHistory,data=gb)
+
+#------------------------Result of below Summary command --------------------------
+#                                            Df Sum Sq Mean Sq F value   Pr(>F)    
+#gb$Check_Account_Status                      3   2047   682.3   4.882  0.00225 ** 
+#  gb$CreditHistory                           4   4842  1210.6   8.661 7.18e-07 ***
+#  gb$Check_Account_Status:gb$CreditHistory  12   1618   134.8   0.965  0.48109    
+#Residuals                                  980 136977   139.8                
+#
+# Result : 
+# Reject Null Hypothese for Check Account Status and Credit History and do post adhoc 
+# test via TukeyHSD
+#--------------------------------------------------------------------------------
+
+summary(anova)
+
+# After accepting  AND IT WILL CHECK P VALUE OF ALL GROUPS 
+# In this case just check table for credit history and account status as this is only 
+# relevant and interaction is not relevant and do not check table for interaction
+
+TukeyHSD(anova)
+
+gb1 <- subset(gb,gb$Check_Account_Status =="A12")
+mean(gb1$Duration)
+gb2 <- subset(gb,gb$Check_Account_Status =="A13")
+mean(gb2$Duration)
+gb3 <- subset(gb,gb$Check_Account_Status =="A14")
+mean(gb3$Duration)
+
+
+#--------------------------------------------------------------------------------
+# Business Questions:
+#  Does the type of a customer depend upon Account Status of the customer and 
+#  their Credit History?
+#--------------------------------------------------------------------------------  
+# Answer : 
+# Here  Customer Category is categorical so we can not use ANOVA here
+# We can try CART here but this session is for ANOVA so we tried to do with Chi
+# Square to just check the relationship
+# 
+# chi Square can be done on one independent variable at one time
+# customer = f(Account Status) and customer = f(Credit History)
+# Such as Chi square - we accept H0 means there is no relation  
+# Such as Chi square - we rejectH0  or accept alternate H1 means there is relation   
+#--------------------------------------------------------------------------------
+
