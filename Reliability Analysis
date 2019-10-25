@@ -1,0 +1,78 @@
+setwd("D:/Great Lakes/Class Stat/Data Excels")
+getwd()
+gb <- read.csv("Aerated Drinks_Satisfaction.csv")
+
+# Remove 1 and 2nd Column
+d1 <- gb[,-c(1,2)]
+
+#RELIABILITY ANALYSIS WITH ALHPHA 
+#Check Raw Alpha which is .51 and > .50 so it reliable 
+alpha(d1)
+
+#Principal Component Analysis 
+#Check Overall MSA which is KMO .73 and > .5  
+#TO CHECK Correlationship
+KMO(d1)
+
+#Bart Test
+# pVALUE < .05 ACCEPT H1
+bart_spher(d1)
+
+#Principal Component
+# 9 Predictors because of 9 variable and it is factors
+#Eign Value is S.D such Comp 1 = 1.61 
+#%variance is Proportion of variance which is Eigen Value/N SUCH AS 1.61/9 = .29 for Comp1 
+#Inlcude first three componenets because %Variance is >= 1 for comp1 ,2 and 3
+pc<- princomp(d1,scores =TRUE, cor=TRUE)
+summary(pc)
+
+#Check which variables will be merger with which component or factor
+#Ignore -ve and +ve sign ,,, just focus on ABS value 
+#Focus on those factors which are selected in previous  princomp
+#Compare values in first three components
+
+#Factor 1 -Negative  PERCEPTION
+#Aerated.Drinks.are.refreshing , Should.be.avoided.with.age
+#,Cannot.be.consumed.in.large.quantity
+#Should.be.consumed.occasionally  
+
+#Factor 2 - POSTIVE PERCEPTION
+#Bad.for.health , Convenient.to.serve ,Very.Tasty    
+
+#Factor 3 - - POSTIVE PERCEPTION w.r.t Competion 
+#As.good.as.energy.drinks
+#Better.than.fruit.juices
+
+# based on above we find y = f(f1,f2,f3) only three factors 
+
+loadings(pc)
+
+# tO caclulate scores for Regression Testing for three factors 
+pc$scores
+#It shows Uniqueness for all variables and check Uniqueness for all variables 
+# Let say :As.good.as.energy.drinks is 884 high communalities  which ( 1- .884)
+# After execution of below command we will get Uniqueness and Loading with rotaional values 
+# Compare previous Loading with current loading 
+# It is giving Chi Square and P Value but this is used for cfa (oBLIQUE)
+fa<-factanal(d1,factors =3 ,rotation="varimax",scores="regression")
+fa
+
+# Calculate Scores 
+fa1<-fa$scores
+fa1
+
+# Crate new data frame to have one dependent variable from original database which is gb 
+# Add independent variable extracted from previous rotation table i.e fa1
+df<-data.frame(gb$No..of.Repeat.Purchases..week.,fa1)
+df
+
+#Regressin Testing on Depdent and Indepent 
+#R square is .38 which is less
+# Model is not strong
+# If we continue with model
+# No of Repeat Purchase week  = 6.5744 - 1.8339 + 3.4198  +1.0209
+# Factor 1 - Negative perception ( Coming negative because one unit increased and goes negative)
+#
+
+reg <- lm(df$gb.No..of.Repeat.Purchases..week.~.,data=df)
+summary(reg)
