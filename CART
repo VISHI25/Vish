@@ -1,0 +1,126 @@
+setwd("D:/Great Lakes/Data Mining/Data")
+getwd()
+pdata <- read.csv("data-2.csv")
+
+#Check the structure of data of variables.
+
+str(pdata)
+
+#Check few records
+head(pdata)
+
+#  R checks first 25 data values in character variable
+#	If it repetitive mode than it will convert into FACTOR else String
+
+#Class of pdata which is data frame
+class(pdata)
+
+# Use stR to know the structure 
+str(pdata)
+
+#SET.SEED will differentiate between training and testing and if you see same 
+#seed value again then we will get same training and testing data.
+#it is function of Ca.tool package
+set.seed(3000)
+
+# It will split the data in 70% and 30%
+sample <- sample.split(pdata,SplitRatio = 0.7)
+
+
+#	70% goes into training and 30% training
+p_train  <- subset(pdata,sample==TRUE)
+p_test  <- subset(pdata,sample==FALSE)
+
+
+#check the number of number records
+nrow(p_train)
+nrow(p_test)
+
+#Model is prepared on p_train and tested on p_test
+#Model should be balanced in p_train to get correct results of Model
+
+#Use Table Function to get the number of observation 
+#Data should be 60 and 40 percentage rule 
+#Depedent should not have missing values 
+table(p_train$delinquent)
+
+
+# CART Model Paramaters 
+# Minsplit = This argument tells for splitting to happen on a Node there should be minimum of
+#1000 case and should not exceed train data 
+# Take Minslpit which 1/10 of Train data set 
+# If number of cases on a node is less than minsplit the model will stop these number of cases
+# Minbucket - Value of minbucket tells model that  terminal nodes only should have   
+# Thumrule - Minbucket can take as 1/10 of Minsplit
+# CP - Complexity Parameter tells how much model should improve with each splitting
+# Such as if cp = .01 then splitting will keep on happening til the time model improve by .01)
+# CP = 0 will give me complete model and it will give all nodes
+# XVAL = These are the number of cross validation R does internally to make the best model
+# Always take value 10.
+
+r.ctrl <- rpart.control(minsplit = 1000 , minbucket=100, cp =0 , xval = 10)
+
+# To Put these control parameter and make a final model
+# Method = class means that depedent is for categorical and we are going classfication
+# Method = anova means that depedent is for continous  
+m1 <- rpart(formula =Sdelinquent~term+gender+age+FICO,data =p_train,method ="class",control =r.ctrl) 
+
+#To see the graphical model name of function is fancyRpartplot
+# Top is Root Node and last is Terminal Node 
+#FICO is the most indepenent variable which makes customer delinquent
+#Check Terminal Nodes look at target variable where delinquency is 1
+# in this model or any new model you can check 
+#only where you set your business rules accordingly.
+
+
+#Rule 1: 
+#  All customers with FICO Score < 500 and term is 36 Months will go into Delinquency and percentage is 52%
+#Rule 2:
+#  All customers with FICO Score > 500 and Gender is Male and Age is > 25 term is 36 Months will go into Delinquency and percentage is 14%.
+
+# Look at the terminal node where deilinquency is 1.
+# Decision tree gives the following rule for custmers going into deliquency 
+# Rule 1 : All customers with FICO < 500 and Term = 36 Months  will go into deliquenct and percentage is 52%.
+# Rule 2 : All customers with FICO => 500 and Gender is Male and Age is greater 25 and Term = 36 Months  
+# will go into deliquenct and percentage is 52%.
+
+fancyRpartPlot(m1)
+
+#	To create a confusion matrix which finds the accuracy of model
+#	Use Library INEQ - to create confusion matrix 
+#	Before using WITH let us predict for 6599 training cases
+
+p_train$predict.class <- predict(m1,p_train , type = "class")
+head(p_train)
+
+#The model has accuracy of 1660 + 3818/6599 which is 83%
+
+with(p_train,table(delinquent, predict.class))
+#-----------------------------------------------------------------------------
+# Check for test data 
+p_test$predict.class <- predict(m1,p_test, type = "class")
+head(p_test)
+with(p_test,table(delinquent, predict.class))
+#--------------------------------------------------------------------------------
+
+# After removal of least term  
+
+set.seed(4000)
+m2 <- rpart(formula =Sdelinquent~gender+age+FICO,data =p_train,method ="class",control =r.ctrl) 
+p_train$predict.class <- predict(m2,p_train , type = "class")
+head(p_train)
+with(p_train,table(delinquent, predict.class))
+p_test$predict.class <- predict(m2,p_test, type = "class")
+head(p_test)
+with(p_test,table(delinquent, predict.class))
+
+# After removal of least FICCO  
+set.seed(5000)
+m3 <- rpart(formula =Sdelinquent~gender+age+term,data =p_train,method ="class",control =r.ctrl) 
+p_train$predict.class <- predict(m3,p_train , type = "class")
+head(p_train)
+with(p_train,table(delinquent, predict.class))
+p_test$predict.class <- predict(m3,p_test, type = "class")
+head(p_test)
+with(p_test,table(delinquent, predict.class))
+
