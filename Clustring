@@ -1,0 +1,54 @@
+#CLUSTER KNOWLEDGE
+setwd("D:/Great Lakes/Data Mining/Data")
+getwd()
+rcdf <- read.csv("Cust.csv")
+
+# To put every variable on scale use Scale matrix
+# Scaled Variable - Use [3:7] - Infeix operartor 
+scaled.rcdf <- scale(rcdf[,3:7])
+head(scaled.rcdf)
+
+# uSE Euclidiean  Method and calculate Distance 
+# Check less distance which is 8 and 9 and similar which .727
+# From Euclidiean metrix 
+#Clustring will start from 8 and 9 and move on.
+d.euc <- dist(x=scaled.rcdf, method ="euclidean") 
+d.euc
+
+#To create cluster using a procedure and the clsutring procedure we will use as Average
+# Procedure is Hierarichal and Method is Average 
+# Function is hclust and h stands for Hierarchial 
+# Average Method is prefer method
+
+clus2 <- hclust(d.euc,method="average")
+clus2
+
+# To see the dendrogram which shows how the cases are getting combined
+# Plot should indicate the names of customers 
+# Function is PLOT
+# as.character(rcdf[,2] USE Name and change from factor to Character and it is at 2
+# This plot used Euclidiean method to plot this 
+# We need to see as per the business how many lines can be draw
+# Such as at 2.5 in plot it will (C,D) , ( H,I) (F,J) , (E,G)
+
+plot(clus2,labels=as.character(rcdf[,2]))
+
+# To get the cluster profile 
+# For three clusters
+# One cluster ( A , C ,D ) , Second cluster ( H,I,F,J), Third Cluster(B,E,G)
+rect.hclust(clus2,k=3,border="red")
+
+#rcdf$clusters is assigned cut tree 
+rcdf$clusters <-cutree(clus2,k=3)
+# This will be tell  that which customer is tagged to which Clusters
+rcdf$clusters
+
+# To find the what is characteristics of each Cluster
+# This Aggregation will tell the property of each variable in each cluster
+
+
+aggr <- aggregate(rcdf[,-c(1,2)],list(rcdf$clusters) , mean)
+aggr
+
+
+
